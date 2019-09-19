@@ -36,7 +36,7 @@ end
 
 mu = mu / s;
 
-k = 5;
+k = 10;
 tau = 0.5;
 mus = [];
 covars = [];

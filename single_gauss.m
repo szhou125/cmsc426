@@ -1,7 +1,7 @@
 s = 0;
 mean = [double(0); double(0); double(0)];
 files = ["106"; "114"; "121"; "137"; "144"; "152"; "160"; "168"; "176"; "192"; "200"; "208"; "216"; "223"; "231"; "248"; "256"; "264"; "280"; "68"; "76"; "91"];
-test_file = "test_images\2.jpg";
+test_file = "test_images\8.jpg";
 dists = [];
 areas = [];
 
@@ -84,6 +84,6 @@ end
 f=fit(areas', dists', 'linearinterp');
 round(f(max_area))
 %Next two lines are just for making pretty plots for our report
-%imagesc(binary_heatmap)
+imagesc(binary_heatmap)
 %scatter(areas', dists')
 
