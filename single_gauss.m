@@ -1,10 +1,10 @@
 s = 0;
 mean = [double(0); double(0); double(0)];
 files = ["106"; "114"; "121"; "137"; "144"; "152"; "160"; "168"; "176"; "192"; "200"; "208"; "216"; "223"; "231"; "248"; "256"; "264"; "280"; "68"; "76"; "91"];
-test_file = "train_images\106.jpg";
-% 68 -> 1823
+test_file = "test_images\2.jpg";
 dists = [];
 areas = [];
+
 for filenum = 1:size(files)
     filename = append('data\', files(filenum), '.mat');
     load(filename);
@@ -60,7 +60,7 @@ B = rgbs(:,:,3);
 count = 0;
 max_like = 0;
 under = 0;
-heatmap = []
+heatmap = [];
 plz_god = 0;
 for i = 1:size(R)
     for j = 1:size(R,2)
@@ -72,8 +72,18 @@ for i = 1:size(R)
         heatmap(i,j) = like;
     end
 end
-%binary_heatmap = heatmap > 1;
-%regionprops('table',binary_heatmap,'Centroid','MajorAxisLength','MinorAxisLength')
-%imagesc(heatmap)
-scatter(areas, dists)
+binary_heatmap = heatmap > 1;
+props_table = regionprops('struct',binary_heatmap,'Centroid','MajorAxisLength','MinorAxisLength');
+max_area = 0;
+for i = 1:size(props_table, 1)
+    local_area = pi * (props_table(i).MajorAxisLength) * (props_table(i).MinorAxisLength) / 4;
+    if local_area > max_area
+        max_area = local_area;
+    end
+end
+f=fit(areas', dists', 'linearinterp');
+round(f(max_area))
+%Next two lines are just for making pretty plots for our report
+%imagesc(binary_heatmap)
+%scatter(areas', dists')
 

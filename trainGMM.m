@@ -1,13 +1,12 @@
 s = 0;
 mu = [ 0 ; 0 ; 0];
 files = ["106"; "114"; "121"; "137"; "144"; "152"; "160"; "168"; "176"; "192"; "200"; "208"; "216"; "223"; "231"; "248"; "256"; "264"; "280"; "68"; "76"; "91"];
-test_file = "train_images\76.jpg";
-% 68 -> 1823
 dists = [];
 areas = [];
 R_balls = [];
 G_balls = [];
 B_balls = [];
+
 for filenum = 1:size(files)
     filename = append('data\', files(filenum), '.mat');
     load(filename);
@@ -37,7 +36,7 @@ end
 
 mu = mu / s;
 
-k = 7;
+k = 5;
 tau = 0.5;
 mus = [];
 covars = [];
@@ -46,9 +45,9 @@ pis = [];
 % Randomized Initialization
 
 for i = 1:k
-    mus(i, 1) = 255 * rand(1,1)%mu(1) + (80 * rand(1,1) - 40);
-    mus(i, 2) = 255 * rand(1,1)%mu(2) + (80 * rand(1,1) - 40);
-    mus(i, 3) = 255 * rand(1,1)%mu(3) + (80 * rand(1,1) - 40);
+    mus(i, 1) = 255 * rand(1,1);
+    mus(i, 2) = 255 * rand(1,1);
+    mus(i, 3) = 255 * rand(1,1);
     covar_val = 1000*rand(1,1) + 1;
     covars(i, 1) = covar_val;
     covars(i, 2) = 0;
@@ -138,31 +137,3 @@ while sum_diff > tau
     iter = iter + 1
     
 end
-
-rgbs = imread("train_images\106.jpg");
-R = rgbs(:,:,1); 
-G = rgbs(:,:,2); 
-B = rgbs(:,:,3);
-count = 0;
-thresh = 1;
-heatmap = [];
-for i = 1:size(R)
-    for j = 1:size(R,2)
-        x = [double(R(i, j)) ; double(G(i, j)) ; double(B(i, j))];
-        like = 0;
-        for tmp = 1:k
-            local_mu = [mus(tmp,1) ; mus(tmp,2) ; mus(tmp,3)];
-            local_cova = [covars(tmp,1) covars(tmp,2) covars(tmp,3) ; covars(tmp,2) covars(tmp,4) covars(tmp,5) ; covars(tmp,3) covars(tmp,5) covars(tmp,6)];
-            local_pi = pis(tmp);
-            like = like + local_pi * (10^8) * (1 / sqrt((2 * pi)^3 * det(local_cova))) * exp(-1 * 0.5 * transpose(x - local_mu) * inv(local_cova) * (x - local_mu));
-        end
-        if like > thresh
-            count = count + 1;
-        end
-        heatmap(i,j) = like;
-    end
-end
-%binary_heatmap = heatmap > 1;
-%regionprops('table',binary_heatmap,'Centroid','MajorAxisLength','MinorAxisLength')
-imagesc(heatmap)
-%scatter(areas, dists)
