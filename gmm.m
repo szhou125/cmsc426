@@ -37,8 +37,8 @@ end
 
 mu = mu / s;
 
-k = 3;
-tau = 1;
+k = 7;
+tau = 0.5;
 mus = [];
 covars = [];
 pis = [];
@@ -49,12 +49,13 @@ for i = 1:k
     mus(i, 1) = 255 * rand(1,1)%mu(1) + (80 * rand(1,1) - 40);
     mus(i, 2) = 255 * rand(1,1)%mu(2) + (80 * rand(1,1) - 40);
     mus(i, 3) = 255 * rand(1,1)%mu(3) + (80 * rand(1,1) - 40);
-    covars(i, 1) = 10000 * rand(1, 1);
-    covars(i, 2) = 10000 * rand(1, 1);
-    covars(i, 3) = 10000 * rand(1, 1);
-    covars(i, 4) = 10000 * rand(1, 1);
-    covars(i, 5) = 10000 * rand(1, 1);
-    covars(i, 6) = 10000 * rand(1, 1);
+    covar_val = 1000*rand(1,1) + 1;
+    covars(i, 1) = covar_val;
+    covars(i, 2) = 0;
+    covars(i, 3) = 0;
+    covars(i, 4) = covar_val;
+    covars(i, 5) = 0;
+    covars(i, 6) = covar_val;
     pis(i) = rand(1,1) * (10^(-3));
 end
 
@@ -77,16 +78,16 @@ while sum_diff > tau
         local_mu = [mus(i, 1) ; mus(i, 2) ; mus(i, 3)];
         for j = 1:size(R_balls,2)
             x = [ R_balls(j) ; G_balls(j) ; B_balls(j) ];
-            alphas(i,j) = pis(i) * (1 / sqrt((2 * pi)^3 * det(local_cova))) * exp(-1 * 0.5 * transpose(x - local_mu) * inv(local_cova) * (x - local_mu));
+            alphas(i,j) = pis(i) * (1 / sqrt((2 * pi)^3 * det(local_cova))) * exp(-1 * 0.5 * transpose(x - local_mu) * (local_cova \ (x - local_mu)));
         end
     end
     
-    for i = 1:k
+    for j = 1:size(R_balls,2)
         local_sum = 0;
-        for j = 1:size(R_balls,2)
+        for i = 1:k
             local_sum = local_sum + alphas(i, j);
         end
-        for j = 1:size(R_balls,2)
+        for i = 1:k
             alphas(i, j) = alphas(i, j) / local_sum;
         end
     end
@@ -111,9 +112,9 @@ while sum_diff > tau
         end
         
         local_cova = [ 0  0 0 ; 0 0 0 ; 0 0 0];
+        local_mu = [mus(i,1) ; mus(i,2) ; mus(i,3)];
         for j = 1:size(R_balls,2)
             local_x = [R_balls(j) ; G_balls(j) ; B_balls(j)];
-            local_mu = [mus(i,1) ; mus(i,2) ; mus(i,3)];
             local_cova = local_cova + alphas(i,j) * (local_x - mu) * transpose(local_x - mu);
         end
         covars(i,1) = local_cova(1) / sum_alphas;
@@ -138,42 +139,30 @@ while sum_diff > tau
     
 end
 
-areas = [];
-dists = [];
-
-for filenum = 1:size(files)
-    imgname = 'train_images\' + files(filenum) + '.jpg';
-    rgbs = imread(imgname);
-    R = rgbs(:,:,1); 
-    G = rgbs(:,:,2); 
-    B = rgbs(:,:,3);
-    count = 0;
-    max_like = 0;
-    thresh = 1;
-    heatmap = [];
-    for i = 1:size(R)
-        for j = 1:size(R,2)
-            x = [double(R(i, j)) ; double(G(i, j)) ; double(B(i, j))];
-            like = 0;
-            for tmp = 1:k
-                local_mu = [mus(tmp,1) ; mus(tmp,2) ; mus(tmp,3)];
-                local_cova = [covars(tmp,1) covars(tmp,2) covars(tmp,3) ; covars(tmp,2) covars(tmp,4) covars(tmp,5) ; covars(tmp,3) covars(tmp,5) covars(tmp,6)];
-                local_pi = pis(tmp);
-                like = like + local_pi * (10^8) * (1 / sqrt((2 * pi)^3 * det(local_cova))) * exp(-1 * 0.5 * transpose(x - local_mu) * inv(local_cova) * (x - local_mu));
-            end
-            if like > thresh
-                count = count + 1;
-            end
-            heatmap(i,j) = like;
+rgbs = imread("train_images\106.jpg");
+R = rgbs(:,:,1); 
+G = rgbs(:,:,2); 
+B = rgbs(:,:,3);
+count = 0;
+thresh = 1;
+heatmap = [];
+for i = 1:size(R)
+    for j = 1:size(R,2)
+        x = [double(R(i, j)) ; double(G(i, j)) ; double(B(i, j))];
+        like = 0;
+        for tmp = 1:k
+            local_mu = [mus(tmp,1) ; mus(tmp,2) ; mus(tmp,3)];
+            local_cova = [covars(tmp,1) covars(tmp,2) covars(tmp,3) ; covars(tmp,2) covars(tmp,4) covars(tmp,5) ; covars(tmp,3) covars(tmp,5) covars(tmp,6)];
+            local_pi = pis(tmp);
+            like = like + local_pi * (10^8) * (1 / sqrt((2 * pi)^3 * det(local_cova))) * exp(-1 * 0.5 * transpose(x - local_mu) * inv(local_cova) * (x - local_mu));
         end
+        if like > thresh
+            count = count + 1;
+        end
+        heatmap(i,j) = like;
     end
-    areas(size(areas) + 1) = count;
-    dists(size(dists) + 1) = str2num(files(filenum));
 end
-%imagesc(heatmap)
-%31 -> 309
-%31.5 -> 412
-%31.6 -> 947
-%31.75 -> 996
-scatter(areas, dists)
-% should be 500 to 600 for 121
+%binary_heatmap = heatmap > 1;
+%regionprops('table',binary_heatmap,'Centroid','MajorAxisLength','MinorAxisLength')
+imagesc(heatmap)
+%scatter(areas, dists)
