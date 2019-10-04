@@ -209,7 +209,7 @@ function [descriptors] = feature_descriptors(img_grayscale, x_best, y_best)
         % Patch is of size 41x41, so point is the actual center
         x = x_best(indx);
         y = y_best(indx);
-        % TODO handle patches near the edge?
+        % Gandle patches near the edge by skipping them. Replace with vector of 0s so we don't screw with the indexing
         if or(or(or(x <= 20, y<=20), x + 20 > x_size), y + 20 > y_size)
             v = zeros(64,1);
             descriptors = [descriptors v];
