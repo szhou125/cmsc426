@@ -1,37 +1,52 @@
-function [pano] = MyPanorama()
+function [panorama] = MyPanorama()
     % Must load images from ../Images/Input/
     % Must return the finished panorama.
 
     % Curr image is image 1
-    % TODO change image read path to ../Images/Input/
     % (It's set to this path for testing purposes
     location = "..\Images\train_images\Set1\";
     curr_img = imread(location + "1.jpg");
+    next_img = imread(location + "2.jpg");
 
     a=dir(location + '*.jpg');
     num_images=size(a,1);
+    tforms(num_images) = projective2d(eye(3));
+    imageSize = zeros(num_images,2);
+    prev_descriptors = 0;
 
     for I = 2:num_images
-        % merge next_img into curr_img
-        next_img = imread(location + I + ".jpg");
         % Corner detection -- convert to grayscale
         curr_img_grayscale = rgb2gray(curr_img);
         next_img_grayscale = rgb2gray(next_img);
+        
+        % Save size of curr_img
+        imageSize(I,:) = size(curr_img_grayscale);
+        
         % Detect corners on both images
-        curr_img_corners = cornermetric(curr_img_grayscale);
+        if prev_descriptors == 0
+            curr_img_corners = cornermetric(curr_img_grayscale);
+        end
         next_img_corners = cornermetric(next_img_grayscale);
         % Get best regional corners out of these on both images
-        curr_img_maxes = imregionalmax(curr_img_corners);
+        if prev_descriptors == 0
+            curr_img_maxes = imregionalmax(curr_img_corners);
+        end
         next_img_maxes = imregionalmax(next_img_corners);
 
         % Run ANMS
-        [curr_img_x_best, curr_img_y_best] = ANMS(curr_img, curr_img_maxes, curr_img_corners);
+        if prev_descriptors == 0
+            [curr_img_x_best, curr_img_y_best] = ANMS(curr_img, curr_img_maxes, curr_img_corners);
+        end
         [next_img_x_best, next_img_y_best] = ANMS(next_img, next_img_maxes, next_img_corners);
 
         % Display ANMS results -- uncomment this line to do so
         %displayANMS(next_img, next_img_x_best, next_img_y_best)
         % Get feature descriptors
-        curr_img_descriptors = feature_descriptors(curr_img_grayscale, curr_img_x_best, curr_img_y_best);
+        if prev_descriptors == 0
+            curr_img_descriptors = feature_descriptors(curr_img_grayscale, curr_img_x_best, curr_img_y_best);
+        else
+            curr_img_descriptors = prev_descriptors;
+        end
         next_img_descriptors = feature_descriptors(next_img_grayscale, next_img_x_best, next_img_y_best);
         % Now match those features with minimum SSD
         [matchedPoints1, matchedPoints2, best_matches] = feature_matching(curr_img_descriptors, next_img_descriptors, curr_img_x_best, curr_img_y_best, next_img_x_best, next_img_y_best);
@@ -41,36 +56,90 @@ function [pano] = MyPanorama()
         % RANSAC to make it better
         [r_matchedPoints1, r_matchedPoints2, H_best] = RANSAC(matchedPoints1, matchedPoints2, curr_img_descriptors, next_img_descriptors, best_matches, curr_img_x_best, curr_img_y_best, next_img_x_best, next_img_y_best);
         % Uncomment the following line to see the matches with RANSAC
-        showMatchedFeatures(curr_img, next_img, r_matchedPoints1, r_matchedPoints2, 'montage');
-        
-        % H_best is the homography between the two images
-        % r_matchedPoints1 and r_matchedPoints2 are each nx2 vectors, where
-        %   n is the number of matched points (x, y). r_matchedPoints1 has
-        %   points from the "curr_img", and r_matchedPoints2 has points
-        %   from the "next_img".
-        
-        % Img1 (curr_img) is the destination. Img2 (next_img) is the src
-        % Now, we warp and blend
-        %blendedImage = getBlendedImage(...)
-        % Set curr_img to blendedImage and continue the loop
+        % showMatchedFeatures(curr_img, next_img, r_matchedPoints1, r_matchedPoints2, 'montage');
+
+        % Get tform for the end part
+        tforms(I) = estimateGeometricTransform(r_matchedPoints2, r_matchedPoints1, 'projective', 'Confidence', 99.9, 'MaxNumTrials', 2000);
+        tforms(I).T = tforms(I).T * tforms(I-1).T;
+
+        curr_img = next_img;
+        prev_descriptors = curr_img_descriptors;
+        if I < num_images
+            next_img = imread(location + (I+1) + ".jpg");
+        end
     end
+
+    % Copied from https://www.mathworks.com/help/vision/examples/feature-based-panoramic-image-stitching.html
+    % START section for aesthetically pleasing transforms
+    
+    for i = 1:numel(tforms)           
+        [xlim(i,:), ylim(i,:)] = outputLimits(tforms(i), [1 imageSize(i,2)], [1 imageSize(i,1)]);    
+    end
+
+    avgXLim = mean(xlim, 2);
+    [~, idx] = sort(avgXLim);
+    centerIdx = floor((numel(tforms)+1)/2);
+    centerImageIdx = idx(centerIdx);
+    Tinv = invert(tforms(centerImageIdx));
+    for i = 1:numel(tforms)    
+        tforms(i).T = tforms(i).T * Tinv.T;
+    end
+    
+    % END section for aesthetically pleasing transforms
+    
+    for i = 1:numel(tforms)
+        [xlim(i,:), ylim(i,:)] = outputLimits(tforms(i), [1 imageSize(i,2)], [1 imageSize(i,1)]);
+    end
+
+    maxImageSize = max(imageSize);
+
+    % Find the minimum and maximum output limits 
+    xMin = min([1; xlim(:)]);
+    xMax = max([maxImageSize(2); xlim(:)]);
+
+    yMin = min([1; ylim(:)]);
+    yMax = max([maxImageSize(1); ylim(:)]);
+
+    % Width and height of panorama.
+    width  = round(xMax - xMin);
+    height = round(yMax - yMin);
+
+    % Initialize the "empty" panorama.
+    panorama = zeros([height width 3], 'double');
+    
+    blender = vision.AlphaBlender('Operation', 'Binary mask', 'MaskSource', 'Input port');
+    % Create a 2-D spatial reference object defining the size of the panorama.
+    xLimits = [xMin xMax];
+    yLimits = [yMin yMax];
+    panoramaView = imref2d([height width], xLimits, yLimits);
+
+    % Create the panorama.
+    for i = 1:num_images
+
+        I = imread(location + i + ".jpg");
+
+        % Transform I into the panorama.
+        warpedImage = imwarp(I, tforms(i), 'OutputView', panoramaView);
+
+        % Generate a binary mask.    
+        mask = imwarp(true(size(I,1),size(I,2)), tforms(i), 'OutputView', panoramaView);
+
+        % Overlay the warpedImage onto the panorama.
+        panorama = step(blender, panorama, im2double(warpedImage), mask);
+    end
+
+    imshow(panorama)
+    
 end
-%{
-function blendedImage = getBlendedImage(curr_img, next_img, r_matchedPoints1, r_matchedPoints2, H_best)
-    % Apply homography to the corners of the next_img
-    [next_y_max, next_x_max, ~] = size(next_img);
-    [next_x_corners, next_y_corners] = apply_homography(H_best, [0;0;next_x_max;next_x_max], [0;next_y_max;0;next_y_max]);
-    % TODO...
-end
-%}
+
 function [r_matchedPoints1, r_matchedPoints2, H_best] = RANSAC(matchedPoints1, matchedPoints2, img1_descriptors, img2_descriptors, best_matches, img1_x_best, img1_y_best, img2_x_best, img2_y_best)
     % best_matches object from feature_matching. Gives us the indices of
     % the respective descriptors
     [~, num_matches] = size(best_matches);
-    max_iterations = 25000;  % Seems to converge after a point, but this is fast
+    max_iterations = 5000;  % Seems to converge after a point, but this is fast
     curr_iteration = 0;
     best_inliers = -1;
-    threshold = 400;  % Tried many different values, this works well!
+    threshold = 403;  % Tried many different values, this works well!
 
     % Get in proper format for apply_homography
     all_src_x = reshape(img2_x_best(best_matches(2, :)), [num_matches, 1]);
@@ -209,7 +278,7 @@ function [descriptors] = feature_descriptors(img_grayscale, x_best, y_best)
         % Patch is of size 41x41, so point is the actual center
         x = x_best(indx);
         y = y_best(indx);
-        % Gandle patches near the edge by skipping them. Replace with vector of 0s so we don't screw with the indexing
+        % TODO handle patches near the edge?
         if or(or(or(x <= 20, y<=20), x + 20 > x_size), y + 20 > y_size)
             v = zeros(64,1);
             descriptors = [descriptors v];
