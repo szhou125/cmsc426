@@ -7,8 +7,8 @@
 % Some parameters you need to tune:
 WindowWidth = -1;  
 ProbMaskThreshold = -1; 
-NumWindows= -1; 
-BoundaryWidth = -1;
+NumWindows= 35; 
+BoundaryWidth = 30;
 
 % Load images:
 fpath = '../input';

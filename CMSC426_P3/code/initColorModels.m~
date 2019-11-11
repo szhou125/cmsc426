@@ -27,15 +27,14 @@ function ColorModels = initializeColorModels(IMG, Mask, MaskOutline, LocalWindow
         for j = lowerX:upperX
             for k = lowerY:upperY
                 if (Mask(k,j) == 1 && MaskOutline_b(k,j) == 0)
-                    f_pixels = [f_pixels; lab(k,j,1), lab(k,j, 2), lab(k,j, 3)];
-                elseif (Mask(k,j) == 0 && MaskOutline_b(k,j) == 0) 
-                    b_pixels = [b_pixels; lab(k,j,1), lab(k,j, 2), lab(k,j, 3)];
+                    f_pixels = [f_pixels; IMG(k,j,1), IMG(k,j, 2), IMG(k,j, 3)];
+                elseif (Mask(j,k) == 0 && MaskOutline_b(j, k) == 0) 
+                    b_pixels = [b_pixels; IMG(k,j,1), IMG(k,j, 2), IMG(k,j, 3)];
                 end
             end
         end
         
         %create gmm models for foreground and background
-       
         f_gmm = fitgmdist(f_pixels, 1);
         b_gmm = fitgmdist(b_pixels, 1);
 
@@ -45,8 +44,8 @@ function ColorModels = initializeColorModels(IMG, Mask, MaskOutline, LocalWindow
         for j = lowerX:upperX
             col_index = 1;
             for k = lowerY:upperY
-                b_prob = pdf(b_gmm, [lab(k,j, 1), lab(k,j, 2), lab(k,j, 3)]);
-                f_prob = pdf(f_gmm, [lab(k,j, 1), lab(k,j, 2), lab(k,j, 3)]);
+                b_prob = pdf(b_gmm, [IMG(j, k, 1), IMG(j, k, 2), IMG(j, k, 3)]);
+                f_prob = pdf(f_gmm, [IMG(j, k, 1), IMG(j, k, 2), IMG(j, k, 3)]);
                 prob = f_prob / (f_prob + b_prob);
                 p_matrix(row_index, col_index) = prob;
                 col_index = col_index + 1;
@@ -55,10 +54,10 @@ function ColorModels = initializeColorModels(IMG, Mask, MaskOutline, LocalWindow
         end
         
         omega = bwdist(MaskOutline);
-        omega = omega(lowerY:upperY, lowerX:upperX);
+        omega = omega(lowerX:upperX, lowerY:upperY);
         omega = exp((-omega.^2) / ((WindowWidth / 2) ^ 2));
         
-        fc = MaskOutline(lowerY:upperY,lowerX:upperX) - p_matrix;
+        fc = MaskOutline(lowerX:upperX, lowerY:upperY) - p_matrix;
         fc = abs(fc).*omega;
         fc = sum(fc(:));
         fc = 1 - fc / sum(omega(:));
