@@ -1,6 +1,6 @@
 clear all
 load('GMM.mat')
-test_file = 'test_images\8.jpg';
+test_file = 'test_images/8.jpg';
 rgbs = imread(test_file);
 R = rgbs(:,:,1); 
 G = rgbs(:,:,2); 
