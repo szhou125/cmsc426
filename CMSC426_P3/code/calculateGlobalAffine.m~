@@ -31,22 +31,14 @@ function [WarpedFrame, WarpedMask, WarpedMaskOutline, WarpedLocalWindows] = calc
         end
         
     end
-        
-    matched_points1 = cornerPoints(f_points1);
-    matched_points2 = cornerPoints(f_points2);
     
-    transform = estimateGeometricTransform(matched_points1, matched_points2, 'affine');
+    matched_points1.Location = f_points1;
+    matched_points2.Location = f_points2;
     
-    %figure; showMatchedFeatures(I1,I2,matchedPoints1,matchedPoints2);
+    transform = estimateGeometricTransform(matchedPoints1, matchedPoints2, 'affine');
     
-    WarpedMask = imwarp(Mask, transform);
-    WarpedMaskOutline = bwperim(WarpedMask,4);
-    WarpedFrame = imwarp(IMG1, transform);
+
     
-    
-    [x, y] = transformPointsForward(transform, Windows(:,1), Windows(:, 2));
-    WarpedLocalWindows = [x, y];
-       
-    
+
 end
 
