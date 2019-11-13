@@ -32,6 +32,7 @@ function [WarpedFrame, WarpedMask, WarpedMaskOutline, WarpedLocalWindows] = calc
         
     end
         
+    %metric is 0?
     matched_points1 = cornerPoints(f_points1);
     matched_points2 = cornerPoints(f_points2);
     
