@@ -44,7 +44,7 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         lowerY = round(LocalWindows(i,2) - WindowWidth / 2);
         upperY = round(LocalWindows(i,2) + WindowWidth / 2); 
         
-        window = img( lowerY:upperY,lowerX:upperX,:);
+        window = img(lowerX:upperX, lowerY:upperY,:);
         
         l = window(:,:,1);
         a = window(:,:,2);
@@ -61,11 +61,11 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         b_indices = find(old_probs <= 0.25);
         
         %dimensions of probs?
-        f_probs = restructuredPoints(f_indices,:);
-        b_probs = restructuredPoints(b_indices,:);
+        f_probs = old_probs(f_indices,:);
+        b_probs = old_probs(b_indices,:);
         
-        all_f = [f_probs; ColorModels.fPoints{i}];
-        all_b = [b_probs; ColorModels.bPoints{i}];
+        all_f = [f_probs; ColorModels.f_probs{i}];
+        all_b = [b_probs; ColorModels.b_probs{i}];
         
         fGMM = fitgmdist(all_f, 1);        
         bGMM = fitgmdist(all_b, 1);
@@ -79,11 +79,11 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         %can i rewrite this lol like total - f count or something?
         new_b_count = find(old_probs ~= 1);  
         
-        NewDistance = bwdist(warpedMaskOutline);
-        NewDistance = NewDistance( lowerY:upperY, lowerX:upperX);
+        NewDistance = bwdist(MaskOutline);
+        NewDistance = NewDistance(lowerX:upperX, lowerY:upperY);
         NewDistance = -NewDistance.^2;
         
-        if(size(new_f_count,1) < 1.2 * size(ColorModels.fPoints{i}, 1))
+        if(size(new_f_count,1) < 1.2 * size(ColorModels.f_probs{i}, 1))
             newfGMM = fGMM;
             newbGMM = bGMM;
             newFPoints = restructuredPoints(new_f_count, :);
@@ -92,7 +92,7 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
             omega = exp(NewDistance / ((WindowWidth/2)^2));
             omega = omega(:);
             
-            conf = warpedMaskOutline( lowerY:upperY, lowerX:upperX);
+            conf = MaskOutline(lowerX:upperX, lowerY:upperY);
             conf = conf(:);
             conf = abs( conf - new_probs ).*omega;
             conf = (1 - sum( conf(:))) / (sum(omega(:)));
@@ -129,8 +129,6 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
     end
     
     %merging
-    maskNum = zeros(size(warpedMask));
-    maskDenom = zeros(size(warpedMask));
     for i = 1:numLocalWindows
         pfsk = pfs{i};
         
@@ -141,9 +139,9 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         
         for row = lowerX:upperX
             for col = lowerY:upperY
-                denom = inv(pdist([NewLocalWindows(i,1), NewLocalWindows(i,1); col, row]) + 0.1);
+                denom = inv(pdist([newLocalWindows(i,1), newLocalWindows(i,1); col, row]) + 0.1);
                 %switch x and y?
-                num = pfsk( col - lowerY + 1, row - lowerX + 1) * denom;
+                num = pkfs( j - lowerY, i - lowerX) * denom;
                 maskNum(row, col) = maskNum(row, col) + num;
                 maskDenom(row, col) = maskDenom(row, col) + denom;
             end
@@ -155,17 +153,16 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
     
     %copy mask
     %update lowerX/upperX/lowerY/upperY
-    UpdatedMask = zeros(size(Pfs));
     UpdatedMask(Pfs > ProbMaskThreshold) = 1;
     for i = 1:size(LocalWindows, 1)
         lowerX = round(LocalWindows(i,2) - WindowWidth / 2);
         upperX = round(LocalWindows(i,2) + WindowWidth / 2);
         lowerY = round(LocalWindows(i,1) - WindowWidth / 2);
         upperY = round(LocalWindows(i,1) + WindowWidth / 2); 
-        disp(lowerX)
-        window = UpdatedMask(lowerX:upperX,lowerY:upperY);
+        
+        window = UpdatedMask(lowerX:upperX, lowerY:upperY);
         window = imfill(window, 'holes');
-        UpdatedMask( lowerX:upperX,lowerY:upperY) = window;
+        UpdatedMask(lowerX:upperX, lowerY:upperY) = window;
         
     end
     mask = imfill(UpdatedMask, 'holes');    
