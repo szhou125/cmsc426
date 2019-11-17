@@ -1,4 +1,4 @@
-function [NewLocalWindows] = localFlowWarp(WarpedPrevFrame, CurrentFrame, LocalWindows, Mask, Width)
+ function [NewLocalWindows] = localFlowWarp(WarpedPrevFrame, CurrentFrame, LocalWindows, Mask, Width)
 % LOCALFLOWWARP Calculate local window movement based on optical flow between frames.
 
 % TODO
@@ -12,15 +12,15 @@ function [NewLocalWindows] = localFlowWarp(WarpedPrevFrame, CurrentFrame, LocalW
     
     velocityX = flow.Vx;
     velocityY = flow.Vy;
-    distances = bwdist(WarpedMask);
+    distances = bwdist(Mask);
     NewLocalWindows = [];
     for i = 1:size(LocalWindows,1)
         
         %gets corners of window
-        lowerX = round(LocalWindows(i,1) - WindowWidth / 2);
-        upperX = round(LocalWindows(i,1) + WindowWidth / 2);
-        lowerY = round(LocalWindows(i,2) - WindowWidth / 2);
-        upperY = round(LocalWindows(i,2) + WindowWidth / 2); 
+        lowerX = round(LocalWindows(i,1) - Width / 2);
+        upperX = round(LocalWindows(i,1) + Width / 2);
+        lowerY = round(LocalWindows(i,2) - Width / 2);
+        upperY = round(LocalWindows(i,2) + Width / 2); 
         
         changeX = 0;
         changeY = 0;

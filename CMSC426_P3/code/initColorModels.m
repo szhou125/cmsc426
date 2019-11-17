@@ -11,7 +11,11 @@ function ColorModels = initializeColorModels(IMG, Mask, MaskOutline, LocalWindow
     confidence = cell(numLocalWindows, 1);
     b_model = cell(numLocalWindows, 1);
     f_model = cell(numLocalWindows, 1);
-
+    b_points = cell(numLocalWindows, 1);
+    f_points = cell(numLocalWindows, 1);
+    distances = cell(numLocalWindows, 1);
+    probs = cell(numLocalWindows, 1);
+    
     for i = 1:numLocalWindows
   
         %gets corners of window
@@ -56,7 +60,8 @@ function ColorModels = initializeColorModels(IMG, Mask, MaskOutline, LocalWindow
         
         omega = bwdist(MaskOutline);
         omega = omega(lowerY:upperY, lowerX:upperX);
-        omega = exp((-omega.^2) / ((WindowWidth / 2) ^ 2));
+        distance = -omega.^2;
+        omega = exp((distance) / ((WindowWidth / 2) ^ 2));
         
         fc = MaskOutline(lowerY:upperY,lowerX:upperX) - p_matrix;
         fc = abs(fc).*omega;
@@ -68,12 +73,20 @@ function ColorModels = initializeColorModels(IMG, Mask, MaskOutline, LocalWindow
         confidence{i} = fc;
         f_model{i} = f_gmm;
         b_model{i} = b_gmm;
-
+        b_points{i} = b_pixels;
+        f_points{i} = f_pixels;
+        distances{i} = distance;
+        probs{i} = p_matrix;
     end
     
     ColorModels = struct;
     ColorModels.Confidence = confidence;
     ColorModels.bGMM = b_model;
     ColorModels.fGMM = f_model;
+    ColorModels.Windows = LocalWindows;
+    ColorModels.fPoints = f_points;
+    ColorModels.bPoints = b_points;
+    ColorModels.distance = distances;
+    ColorModels.prob = probs
 end
 

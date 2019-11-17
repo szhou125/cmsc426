@@ -18,7 +18,7 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
 % Feel free to redefine this as several different functions if you prefer.
 
     %update color models
-    
+    %FIX X and Y IN ALL FILES!!!!
     numLocalWindows = size(NewLocalWindows, 1);
     confidence = cell(numLocalWindows, 1);
     foreground = cell(numLocalWindows, 1);

@@ -6,12 +6,12 @@ function ShapeConfidences = initShapeConfidences(LocalWindows, ColorConfidences,
 
     for i = 1:numLocalWindows
         if (ColorConfidences.Confidence{i} > fcutoff)
-            sigmaS = sigmaMin + A(ColorConfidences.Confidence{i} - fcutoff).^R;
+            sigmaS = SigmaMin + A(ColorConfidences.Confidence{i} - fcutoff).^R;
         else
-            sigmaS = sigmaMin;
+            sigmaS = SigmaMin;
         end
         
-        f_s{i} = 1 - exp(-ColorConfidences.Distances{i}.^2 / sigmaS^2);
+        f_s{i} = 1 - exp(-ColorConfidences.distance{i}.^2 / sigmaS^2);
     end
     
     ShapeConfidences = struct;

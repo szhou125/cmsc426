@@ -3,8 +3,10 @@ function [WarpedFrame, WarpedMask, WarpedMaskOutline, WarpedLocalWindows] = calc
     img1 = rgb2gray(IMG1);
     img2 = rgb2gray(IMG2);
     
-    points1 = detectHarrisFeatures(img1);
-    points2 = detectHarrisFeatures(img2);
+    points1 = detectSURFFeatures(img1, 'MetricThreshold', 50);
+    points2 = detectSURFFeatures(img2, 'MetricThreshold', 50);
+    
+    len = size(points1, 1);
     
     [features1, valid_points1] = extractFeatures(img1, points1);
     [features2, valid_points2] = extractFeatures(img2, points2);
@@ -20,6 +22,8 @@ function [WarpedFrame, WarpedMask, WarpedMaskOutline, WarpedLocalWindows] = calc
     %isolate foreground
     f_points1 = [];
     f_points2 = [];
+    metric1 = [];
+    metric2 = [];
     
     for i = 1:matched_points1.Count
         matched_point1 = matched_points1.Location(i,:);
@@ -28,22 +32,25 @@ function [WarpedFrame, WarpedMask, WarpedMaskOutline, WarpedLocalWindows] = calc
         if (Mask(round(matched_point1(:,2)), round(matched_point1(:,1))) == 1) 
             f_points1 = [f_points1; matched_point1];
             f_points2 = [f_points2; matched_point2];
+            metric1 = [metric1; matched_points1.Metric(i)];
+            metric2 = [metric2; matched_points2.Metric(i)];
         end
         
     end
         
     %metric is 0?
-    matched_points1 = cornerPoints(f_points1);
-    matched_points2 = cornerPoints(f_points2);
+    updated_matched_points1 =cornerPoints(f_points1, 'Metric', metric1);
+    updated_matched_points2 = cornerPoints(f_points2, 'Metric', metric2);
     
-    transform = estimateGeometricTransform(matched_points1, matched_points2, 'affine');
+    transform = estimateGeometricTransform(updated_matched_points1, updated_matched_points2, 'affine');
     
-    %figure; showMatchedFeatures(I1,I2,matchedPoints1,matchedPoints2);
+    %figure; showMatchedFeatures(I1,I2,updated_matched_points1,updated_matched_points2);
     
     WarpedMask = imwarp(Mask, transform);
+    WarpedMask = imresize(WarpedMask, [size(IMG2, 1), size(IMG2, 2)]); 
+
     WarpedMaskOutline = bwperim(WarpedMask,4);
-    WarpedFrame = imwarp(IMG1, transform);
-    
+    WarpedFrame = imresize(imwarp(IMG1, transform), [size(IMG2, 1), size(IMG2, 2)]);    
     
     [x, y] = transformPointsForward(transform, Windows(:,1), Windows(:, 2));
     WarpedLocalWindows = [x, y];
