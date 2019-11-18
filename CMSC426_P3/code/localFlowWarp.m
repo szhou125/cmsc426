@@ -2,12 +2,13 @@
 % LOCALFLOWWARP Calculate local window movement based on optical flow between frames.
 
 % TODO
+    %how to display this?
     WarpedPrevFrame = rgb2gray(WarpedPrevFrame);
     CurrentFrame = rgb2gray(CurrentFrame);
     
     ofEstimate = opticalFlowHS;
     %what is this line doing?
-    estimateFlow(ofEstimate, WarpedPrevFrame);
+    estimateFlow(ofEstimate, WarpedPrevFrame);img2
     flow = estimateFlow(ofEstimate, CurrentFrame);
     
     velocityX = flow.Vx;

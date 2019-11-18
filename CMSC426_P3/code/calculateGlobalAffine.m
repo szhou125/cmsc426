@@ -39,12 +39,12 @@ function [WarpedFrame, WarpedMask, WarpedMaskOutline, WarpedLocalWindows] = calc
     end
         
     %metric is 0?
-    updated_matched_points1 =cornerPoints(f_points1, 'Metric', metric1);
+    updated_matched_points1 = cornerPoints(f_points1, 'Metric', metric1);
     updated_matched_points2 = cornerPoints(f_points2, 'Metric', metric2);
     
     transform = estimateGeometricTransform(updated_matched_points1, updated_matched_points2, 'affine');
     
-    %figure; showMatchedFeatures(I1,I2,updated_matched_points1,updated_matched_points2);
+    %figure; showMatchedFeatures(img1,img2,updated_matched_points1,updated_matched_points2);
     
     WarpedMask = imwarp(Mask, transform);
     WarpedMask = imresize(WarpedMask, [size(IMG2, 1), size(IMG2, 2)]); 
