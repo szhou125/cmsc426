@@ -44,25 +44,28 @@ function ColorModels = initializeColorModels(IMG, Mask, MaskOutline, LocalWindow
         b_gmm = fitgmdist(b_pixels, 1);
 
         %foreground probability matrix
-        p_matrix = zeros(WindowWidth, WindowWidth);
-        row_index = 1;
+       p_matrix = zeros(WindowWidth, WindowWidth);
+       col_index = 1;
         for j = lowerX:upperX
-            col_index = 1;
+            row_index = 1;
             for k = lowerY:upperY
                 b_prob = pdf(b_gmm, [lab(k,j, 1), lab(k,j, 2), lab(k,j, 3)]);
                 f_prob = pdf(f_gmm, [lab(k,j, 1), lab(k,j, 2), lab(k,j, 3)]);
                 prob = f_prob / (f_prob + b_prob);
-                p_matrix(row_index, col_index) = prob;
-                col_index = col_index + 1;
+                p_matrix(row_index,col_index) = prob;
+                row_index = row_index + 1;
             end
-            row_index = row_index + 1;        
+            col_index = col_index + 1;        
         end
         
+        %distance to mask outline
         omega = bwdist(MaskOutline);
         omega = omega(lowerY:upperY, lowerX:upperX);
         distance = -omega.^2;
         omega = exp((distance) / ((WindowWidth / 2) ^ 2));
         
+        
+        %calculate confidence
         fc = MaskOutline(lowerY:upperY,lowerX:upperX) - p_matrix;
         fc = abs(fc).*omega;
         fc = sum(fc(:));

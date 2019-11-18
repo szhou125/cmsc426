@@ -4,10 +4,18 @@
 turtle = bsxfun(@times, img1, cast(mask1,class(img1)));
 
 %to visualize local windows with mask on image
-%[maskoutline1, localsamples1] = initLocalWindows(img1,mask1,35, 30, true)
+[maskoutline1, localsamples1] = initLocalWindows(img1,mask1,35, 30, true)
 
 %to read and create mask for image
 %img1 = imread("1.jpg");
 %mask1 = roipoly(img1);
 
 m = initializeColorModels(img1, mask1, maskoutline1, localsamples1, 5, 30)
+
+
+lowerX = 524 - 15;
+upperX = 524 + 15;
+lowerY = 402 - 15;
+upperY = 402 + 15; 
+
+imshow(img1(lowerY:upperY,lowerX:upperX));
