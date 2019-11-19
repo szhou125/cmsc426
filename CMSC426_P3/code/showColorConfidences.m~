@@ -14,9 +14,9 @@ for i = 1:length(LocalWindows)
     y = LocalWindows(i,2);
     x = round(x); y = round(y);
     yMin = round(max((y-(Width/2)),1));
-    yMax = round(min((y+(Width/2 - 1)),imH));
-    xMin = round(max((x-(Width/2)),1)); 
-    xMax = round(min((x+(Width/2 - 1)),imW));
+    yMax = rounmin((y+(Width/2 - 1)),imH);
+    xMin = max((x-(Width/2)),1); 
+    xMax = min((x+(Width/2 - 1)),imW);
     yRange = yMin:yMax;
     xRange = xMin:xMax;
     

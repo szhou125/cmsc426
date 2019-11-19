@@ -11,7 +11,7 @@
     estimateFlow(ofEstimate, WarpedPrevFrame);
     flow = estimateFlow(ofEstimate, CurrentFrame);
     
-    %plot(flow)
+    plot(flow)
     
     velocityX = flow.Vx;
     velocityY = flow.Vy;

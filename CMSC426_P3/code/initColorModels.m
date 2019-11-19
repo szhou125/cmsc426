@@ -19,10 +19,10 @@ function ColorModels = initializeColorModels(IMG, Mask, MaskOutline, LocalWindow
     for i = 1:numLocalWindows
   
         %gets corners of window
-        lowerX = LocalWindows(i,1) - WindowWidth / 2;
-        upperX = LocalWindows(i,1) + WindowWidth / 2;
-        lowerY = LocalWindows(i,2) - WindowWidth / 2;
-        upperY = LocalWindows(i,2) + WindowWidth / 2; 
+        lowerX = round(LocalWindows(i,1) - WindowWidth / 2);
+        upperX = round(LocalWindows(i,1) + WindowWidth / 2);
+        lowerY = round(LocalWindows(i,2) - WindowWidth / 2);
+        upperY = round(LocalWindows(i,2) + WindowWidth / 2); 
         
         %account for boundary width?
         %get pixels for gmm

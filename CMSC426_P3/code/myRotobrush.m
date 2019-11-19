@@ -5,13 +5,13 @@
 % Feel free to modify this code as you see fit.
 
 % Some parameters you need to tune:
-WindowWidth = 50;  
+WindowWidth = 45;  
 ProbMaskThreshold = 0.5; 
-NumWindows= 40; 
+NumWindows= 35; 
 BoundaryWidth = 2;
 
 % Load images:
-fpath = '../frames/Frames5';
+fpath = '../frames/Frames1';
 files = dir(fullfile(fpath, '*.jpg'));
 imageNames = zeros(length(files),1);
 images = cell(length(files),1);
@@ -30,8 +30,8 @@ end
 
 % NOTE: to save time during development, you should save/load your mask rather than use ROIPoly every time.
 %mask = roipoly(images{1});
-mask = load('../masks/mask5.mat');
-mask = mask.mask;
+mask = load('../masks/mask1.mat');
+mask = mask.mask1;
 
 imshow(imoverlay(images{1}, boundarymask(mask,8),'red'));
 set(gca,'position',[0 0 1 1],'units','normalized')
