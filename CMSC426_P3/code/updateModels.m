@@ -193,7 +193,9 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         UpdatedMask(lowerY:upperY, lowerX:upperX) = window;
         
     end
-    mask = imfill(UpdatedMask, 'holes');    
+    mask = imfill(UpdatedMask, 'holes');  
+    LocalWindows = NewLocalWindows;
+    ColorModels = newColorModel;
     
 end
 
