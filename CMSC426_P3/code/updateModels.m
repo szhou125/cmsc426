@@ -77,6 +77,8 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         new_probs = new_window_f_prob ./ (new_window_f_prob + new_window_b_prob);
 
         %just gets indices
+        %should this be 1?
+        %probability is 1?
         new_f_count = find(new_probs == 1);
         %can i rewrite this lol like total - f count or something?
         new_b_count = find(new_probs ~= 1);  
@@ -167,11 +169,28 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         
         for row = lowerY:upperY
             for col = lowerX:upperX
-                denom = inv(pdist([NewLocalWindows(i,1), NewLocalWindows(i,2); col, row]) + 0.1);
-                %switch x and y?
-                num = pfsk( col - lowerX + 1, row - lowerY + 1) * denom;
-                maskNum(row, col) = maskNum(row,col) + num;
-                maskDenom(row, col) = maskDenom(row,col) + denom;
+                
+                %for j = 1:numLocalWindows
+                %    checklowerX = round(NewLocalWindows(i,1) - WindowWidth / 2);
+                %    checkupperX = round(NewLocalWindows(i,1) + WindowWidth / 2);
+                %    checklowerY = round(NewLocalWindows(i,2) - WindowWidth / 2);
+                %    checkupperY = round(NewLocalWindows(i,2) + WindowWidth / 2); 
+                    
+                %    if (NewLocalWindows(i,1) <= checkupperX &&...
+                %            NewLocalWindows(i,1) >= checklowerX &&...
+                %            NewLocalWindows(i,2) <= checkupperY &&...
+                %            NewLocalWindows(i,2) >= checklowerY) 
+                        denom = inv(pdist([NewLocalWindows(i,1), NewLocalWindows(i,2); col, row]) + 0.1);
+                        %switch x and y?
+                        num = pfsk( col - lowerX + 1, row - lowerY + 1) * denom;
+                        maskNum(row, col) = maskNum(row,col) + num;
+                        maskDenom(row, col) = maskDenom(row,col) + denom;
+                %    end
+                        
+                    
+                %end
+                
+
             end
         end  
     end
