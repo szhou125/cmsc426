@@ -106,7 +106,7 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
             %set confidence, fgmm, bgmm, fpx, bpx, newprob
             newfGMM = ColorModels.fGMM{i};
             newbGMM = ColorModels.bGMM{i};
-            conf = ColorModels.Confidence{i};
+            conf = ColorModels.Confidences{i};
             newFPoints = f_probs;
             newBPoints = b_probs
             prob = reshape(old_probs, [size(window, 1) size(window, 2)]);
@@ -122,7 +122,7 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
     end
     
     newColorModel = struct;
-    newColorModel.Confidence = confidence;
+    newColorModel.Confidences = confidence;
     newColorModel.bGMM = b_prob;
     newColorModel.fGMM = f_prob;
     newColorModel.Windows = w;

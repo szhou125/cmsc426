@@ -83,7 +83,7 @@ function ColorModels = initializeColorModels(IMG, Mask, MaskOutline, LocalWindow
     end
     
     ColorModels = struct;
-    ColorModels.Confidence = confidence;
+    ColorModels.Confidences = confidence;
     ColorModels.bGMM = b_model;
     ColorModels.fGMM = f_model;
     ColorModels.Windows = LocalWindows;

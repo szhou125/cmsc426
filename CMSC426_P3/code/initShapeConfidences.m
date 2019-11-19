@@ -5,8 +5,8 @@ function ShapeConfidences = initShapeConfidences(LocalWindows, ColorConfidences,
     f_s = cell(numLocalWindows);
 
     for i = 1:numLocalWindows
-        if (ColorConfidences.Confidence{i} > fcutoff)
-            sigmaS = SigmaMin + A*(ColorConfidences.Confidence{i} - fcutoff).^R;
+        if (ColorConfidences.Confidences{i} > fcutoff)
+            sigmaS = SigmaMin + A*(ColorConfidences.Confidences{i} - fcutoff).^R;
         else
             sigmaS = SigmaMin;
         end
