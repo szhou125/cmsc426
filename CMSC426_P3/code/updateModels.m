@@ -20,7 +20,6 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
     %update color models
     %%%%%%%%%%%%%%%%%%%%FIX X and Y IN ALL FILES!!!!
     numLocalWindows = size(NewLocalWindows, 1);
-    
     confidence = cell(numLocalWindows, 1);
     foreground = cell(numLocalWindows, 1);
     background = cell(numLocalWindows, 1);
@@ -32,7 +31,6 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
 
     %need to update cells
     %can i condense this since its in 1 file
-    %need to really understand what im doing lol
     %what are the fields of each?
     
     img = rgb2lab(CurrentFrame);
@@ -137,6 +135,7 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
     ShapeConfidences = initShapeConfidences(NewLocalWindows, newColorModel, WindowWidth, SigmaMin, A, R, fcutoff);
     
     %is the x and y switched?
+    %get warped mask windows
     LocalWarpedMasks = cell(numLocalWindows, 1);
     for i = 1:numLocalWindows
         lowerX = round(NewLocalWindows(i,1) - WindowWidth / 2);
@@ -146,6 +145,7 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         LocalWarpedMasks{i} = warpedMask( lowerY:upperY, lowerX:upperX);
     end
     
+    %merge models
     pfs = cell(numLocalWindows, 1);
     for i = 1:numLocalWindows
         localMask = LocalWarpedMasks{i};
@@ -190,7 +190,7 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         upperX = round(LocalWindows(i,1) + WindowWidth / 2); 
         window = UpdatedMask(lowerY:upperY, lowerX:upperX);
         window = imfill(window, 'holes');
-        UpdatedMask( lowerY:upperY, lowerX:upperX) = window;
+        UpdatedMask(lowerY:upperY, lowerX:upperX) = window;
         
     end
     mask = imfill(UpdatedMask, 'holes');    
