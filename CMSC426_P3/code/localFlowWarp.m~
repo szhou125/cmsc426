@@ -41,8 +41,8 @@
         averageChangeY = changeY / (Width * Width);
         
         %is it 2 1 or 1 2
-        NewLocalWindows(i, 1:2) =  [round(LocalWindows(i,1) + averageChangeX),
-                                    round(LocalWindows(i,2) + averageChangeY)];
+        NewLocalWindows(i, 1:2) =  [round(LocalWindows(i,2) + averageChangeX),
+                                    round(LocalWindows(i,1) + averageChangeY)];
         
     end
 
