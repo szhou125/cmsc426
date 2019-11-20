@@ -37,7 +37,6 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
 
     for i = 1:size(NewLocalWindows, 1)
         
-        
         %gets corners of window
         lowerX = round(LocalWindows(i,1) - WindowWidth / 2);
         upperX = round(LocalWindows(i,1) + WindowWidth / 2);
@@ -49,7 +48,7 @@ function [mask, LocalWindows, ColorModels, ShapeConfidences] = ...
         l = window(:,:,1);
         a = window(:,:,2);
         b = window(:,:,3);
-
+        restructuredPoints = [];
         restructuredPoints(:,1:3) = [l(:),a(:),b(:)];
         
         %for each point in restructured points

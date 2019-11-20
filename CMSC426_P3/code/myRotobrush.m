@@ -37,11 +37,11 @@ imshow(imoverlay(images{1}, boundarymask(mask,8),'red'));
 set(gca,'position',[0 0 1 1],'units','normalized')
 F = getframe(gcf);
 [I,~] = frame2im(F);
-modifiedpath = '../newFrames/NewFrames5';
-imwrite(I, fullfile(modifiedpath, strip(imageNames(1,:))));
-outputVideo = VideoWriter(fullfile(modifiedpath,'video.mp4'),'MPEG-4');
-open(outputVideo);
-writeVideo(outputVideo,I);
+%modifiedpath = '../newFrames/NewFrames5';
+%imwrite(I, fullfile(modifiedpath, strip(imageNames(1,:))));
+%outputVideo = VideoWriter(fullfile(modifiedpath,'video.mp4'),'MPEG-4');
+%open(outputVideo);
+%writeVideo(outputVideo,I);
 
 % Sample local windows and initialize shape+color models:
 [mask_outline, LocalWindows] = initLocalWindows(images{1},mask,NumWindows,WindowWidth,true);
@@ -120,10 +120,10 @@ for prev=1:(length(files)-1)
     % Write video frame:
     imshow(imoverlay(images{curr}, boundarymask(mask,8), 'red'));
     set(gca,'position',[0 0 1 1],'units','normalized')
-    F = getframe(gcf);
-    [I,~] = frame2im(F);
-    imwrite(I, fullfile(modifiedpath, strip(imageNames(curr,:))));
-    writeVideo(outputVideo,I);
+    %F = getframe(gcf);
+    %[I,~] = frame2im(F);
+    %imwrite(I, fullfile(modifiedpath, strip(imageNames(curr,:))));
+    %writeVideo(outputVideo,I);
 
     imshow(images{curr})
     hold on
